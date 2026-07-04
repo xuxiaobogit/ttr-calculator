@@ -11,7 +11,7 @@ A browser-based Warfarin **Time in Therapeutic Range (TTR)** calculator using th
 
 - 📄 **Flexible import** — drag & drop a CSV / TXT file, or paste rows straight from Excel. UTF‑8 and GBK encodings, plus comma / tab / semicolon delimiters, are auto‑detected.
 - 👥 **Batch by patient and group** — computes many patients and groups at once; a single patient with just two columns (date, INR) also works.
-- 📊 **Detailed metrics** — per‑patient TTR, time below range, time above range, and days assessed; per‑group summaries (mean ± SD, median, range).
+- 📊 **Multiple algorithms side by side** — for every patient and group it reports the **Rosendaal TTR** (time-based), **PINRR** (proportion of tests in range, count-based), **INR SD**, and the **Fihn variance growth rate (VGR)** of INR stability — so you can see directly how the methods diverge on the same data. Plus time below / above range, days assessed, and per-group summaries (mean ± SD, median, range).
 - 📈 **Interactive INR trajectory chart** — the therapeutic window is shaded, and each measurement is colored by whether it falls in / below / above range.
 - ⚙️ **Configurable range** — presets (2.0–3.0 / 2.5–3.5) or custom limits; optionally exclude over‑long testing intervals (default threshold 56 days).
 - 💾 **One‑click CSV export** — results open directly in Excel.
@@ -51,11 +51,22 @@ The demo link supports a few query parameters for sharing a preconfigured view:
 
 Example: `?demo=1&lang=en&theme=light`
 
-## Method
+## Metrics & methods
 
-Rosendaal FR, Cannegieter SC, van der Meer FJ, Briët E. **A method to determine the optimal intensity of oral anticoagulant therapy.** *Thromb Haemost.* 1993;69(3):236‑239.
+| Metric | Definition | Type |
+| --- | --- | --- |
+| **TTR (Rosendaal)** | Linear interpolation between consecutive INRs; percentage of **time** in range | Time-based |
+| **PINRR** | In-range INR **tests** ÷ total tests × 100% (the "traditional" method) | Count-based |
+| **INR SD** | Sample standard deviation of the patient's INR values | Variability |
+| **VGR (Fihn)** | Mean over intervals of (ΔINR)² ÷ weeks between tests; higher = less stable | Variability |
 
-Time between consecutive INR measurements is allocated by linear interpolation. Intervals longer than the optional gap threshold are excluded from both the numerator and the denominator.
+The Rosendaal TTR interpolates INR linearly between measurements and allocates time in range; intervals longer than the optional gap threshold are excluded from both the numerator and the denominator. TTR and PINRR frequently differ on the same dataset, and INR-variability metrics (SD, VGR) have been shown to predict bleeding and thromboembolism independently of TTR.
+
+**References**
+
+- Rosendaal FR, Cannegieter SC, van der Meer FJ, Briët E. A method to determine the optimal intensity of oral anticoagulant therapy. *Thromb Haemost.* 1993;69(3):236‑239.
+- Fihn SD, McDonell M, Martin D, et al. Risk factors for complications of chronic anticoagulation. *Ann Intern Med.* 1993;118(7):511‑520. (introduces the variance growth rate)
+- Lind M, et al. The clinical evaluation of INR variability and control in conventional oral anticoagulant administration by use of the variance growth rate. *J Thromb Haemost.* 2013;11(8):1540‑1546. (VGR methods A/B1/B2)
 
 ## Disclaimer
 

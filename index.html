@@ -199,9 +199,12 @@
   }
   .stat-card .g-name { font-size: 13px; font-weight: 700; color: var(--primary); display: flex; justify-content: space-between; }
   .stat-card .g-n { color: var(--muted); font-weight: 600; }
-  .stat-card .g-mean { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; margin: 2px 0; }
+  .stat-card .g-method { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+  .stat-card .g-mean { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 2px; }
   .stat-card .g-mean small { font-size: 14px; font-weight: 600; color: var(--muted); }
   .stat-card .g-sub { font-size: 12.5px; color: var(--muted); }
+  .stat-card .g-cmp { display: flex; gap: 14px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--muted); }
+  .stat-card .g-cmp b { color: var(--text); font-weight: 700; }
 
   /* ---------- table ---------- */
   .table-wrap { overflow: auto; max-height: 430px; border: 1px solid var(--border); border-radius: 12px; }
@@ -224,6 +227,9 @@
   .ttrcell .bar i { display: block; height: 100%; background: var(--primary); border-radius: 3px; }
   .muted { color: var(--muted); }
   .note-line { font-size: 12.5px; color: var(--muted); margin: 10px 2px 0; }
+  .metrics-help { margin-top: 14px; }
+  .metrics-help ul { margin: 6px 0; padding-left: 20px; }
+  .metrics-help li { margin: 3px 0; }
 
   /* ---------- chart ---------- */
   .chart-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -359,6 +365,10 @@
       </table>
     </div>
     <p class="note-line" id="tableNote"></p>
+    <details class="format-help metrics-help">
+      <summary data-i18n="metricsTitle"></summary>
+      <div id="metricsBody"></div>
+    </details>
   </section>
 
   <section class="card hidden" id="chartCard">
@@ -428,7 +438,17 @@ P02,B,2025-01-08 08:15,3.10</pre>`,
     settingsErr: '请输入有效治疗窗：下限 > 0 且小于上限。',
     exportBtn: '导出 CSV',
     thId: '患者 ID', thGroup: '分组', thN: '检测次数', thDays: '评估天数',
-    thTTR: 'TTR', thBelow: '低于窗', thAbove: '高于窗',
+    thTTR: 'TTR', thPINRR: '达标比例', thSD: 'INR 标准差', thVGR: 'VGR', thBelow: '低于窗', thAbove: '高于窗',
+    rosLabel: 'Rosendaal TTR',
+    metricsTitle: '关于各项指标（含公式与文献）',
+    metricsBody: `
+      <ul>
+        <li><b>TTR（Rosendaal 法）</b>：相邻两次 INR 间线性插值，计算落在治疗窗内的<i>时间</i>百分比。Rosendaal 等，1993。</li>
+        <li><b>达标比例 PINRR</b>：落在治疗窗内的 INR <i>次数</i> ÷ 总检测次数 ×100%（传统"点计数"法，不考虑时间）。</li>
+        <li><b>INR 标准差</b>：该患者所有 INR 值的样本标准差，反映离散程度。</li>
+        <li><b>VGR（Fihn 方差增长率）</b>：各相邻区间 (ΔINR)² ÷ 该区间周数，再对区间取平均；<b>数值越大越不稳定</b>。Fihn 等。</li>
+      </ul>
+      <p>同一批数据下 TTR 与 PINRR 常有系统性差异；变异性指标（SD、VGR）可独立于 TTR 预测出血与血栓风险，故并列展示。</p>`,
     invalidPatient: '有效检测不足，无法计算',
     ungrouped: '未分组',
     overall: '全部患者',
@@ -491,7 +511,17 @@ P02,B,2025-01-08 08:15,3.10</pre>`,
     settingsErr: 'Enter a valid range: lower limit > 0 and below the upper limit.',
     exportBtn: 'Export CSV',
     thId: 'Patient ID', thGroup: 'Group', thN: 'Tests', thDays: 'Days assessed',
-    thTTR: 'TTR', thBelow: 'Below range', thAbove: 'Above range',
+    thTTR: 'TTR', thPINRR: 'PINRR', thSD: 'INR SD', thVGR: 'VGR', thBelow: 'Below range', thAbove: 'Above range',
+    rosLabel: 'Rosendaal TTR',
+    metricsTitle: 'About these metrics (formulas & references)',
+    metricsBody: `
+      <ul>
+        <li><b>TTR (Rosendaal)</b>: linear interpolation between consecutive INRs; percentage of <i>time</i> spent in range. Rosendaal et al., 1993.</li>
+        <li><b>PINRR</b>: proportion of INR <i>tests</i> in range ÷ total tests ×100% (traditional count-based method; ignores timing).</li>
+        <li><b>INR SD</b>: sample standard deviation of the patient's INR values — a measure of spread.</li>
+        <li><b>VGR (Fihn variance growth rate)</b>: mean over intervals of (ΔINR)² ÷ weeks in that interval; <b>higher = less stable</b>. Fihn et al.</li>
+      </ul>
+      <p>For the same data, TTR and PINRR often differ systematically; variability metrics (SD, VGR) predict bleeding and thrombosis risk independently of TTR, so they are shown side by side.</p>`,
     invalidPatient: 'Not enough valid tests',
     ungrouped: 'Ungrouped',
     overall: 'All patients',
@@ -631,23 +661,41 @@ function segmentSplit(v0, v1, lo, hi) {
   const below = fracBetween(v0, v1, -Infinity, lo);
   return { below, inR, above: Math.max(0, 1 - inR - below) };
 }
+const WEEK_MS = 7 * 86400000;
 function computePatient(points, lo, hi, maxGapMs) {
+  const n = points.length;
+  // ---- count-based metrics (independent of timing) ----
+  // PINRR = proportion of INR tests within range; SD = spread of INR values
+  let inCount = 0, sum = 0, sumSq = 0;
+  for (const p of points) {
+    if (p.v >= lo && p.v <= hi) inCount++;
+    sum += p.v; sumSq += p.v * p.v;
+  }
+  const pinrr = n ? inCount / n * 100 : null;
+  const sdINR = n > 1 ? Math.sqrt(Math.max(0, (sumSq - sum * sum / n) / (n - 1))) : null;
+
+  // ---- interval-based metrics ----
+  // Rosendaal TTR (linear interpolation) + Fihn variance growth rate
   let inMs = 0, belowMs = 0, aboveMs = 0, totalMs = 0, excluded = 0;
-  for (let i = 0; i < points.length - 1; i++) {
+  let vgrSum = 0, vgrK = 0;
+  for (let i = 0; i < n - 1; i++) {
     const dt = points[i + 1].t - points[i].t;
     if (dt <= 0) continue;
     if (maxGapMs && dt > maxGapMs) { excluded++; continue; }
     const s = segmentSplit(points[i].v, points[i + 1].v, lo, hi);
     inMs += s.inR * dt; belowMs += s.below * dt; aboveMs += s.above * dt; totalMs += dt;
+    const dv = points[i + 1].v - points[i].v;
+    vgrSum += dv * dv / (dt / WEEK_MS); vgrK++;
   }
-  if (totalMs === 0) return { valid: false, excluded };
+  const vgr = vgrK ? vgrSum / vgrK : null;
+  if (totalMs === 0) return { valid: false, excluded, pinrr, sdINR, vgr };
   return {
     valid: true,
     ttr: inMs / totalMs * 100,
     below: belowMs / totalMs * 100,
     above: aboveMs / totalMs * 100,
     days: totalMs / 86400000,
-    excluded
+    pinrr, sdINR, vgr, excluded
   };
 }
 function computeAll() {
@@ -671,30 +719,35 @@ function computeAll() {
   perPatient.filter(r => r.valid).forEach(r => {
     const g = r.group || '';
     if (!byGroup.has(g)) byGroup.set(g, []);
-    byGroup.get(g).push(r.ttr);
+    byGroup.get(g).push(r);
   });
   groupStats = [...byGroup.entries()]
     .sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
-    .map(([g, ttrs]) => makeStats(g, ttrs));
+    .map(([g, rows]) => makeStats(g, rows));
   if (groupStats.length > 1) {
     makeOverall();
   }
   renderResults();
 }
-function makeStats(g, ttrs) {
+const avg = arr => arr.reduce((s, x) => s + x, 0) / arr.length;
+function makeStats(g, rows) {
+  const ttrs = rows.map(r => r.ttr);
   const n = ttrs.length;
-  const mean = ttrs.reduce((s, x) => s + x, 0) / n;
+  const mean = avg(ttrs);
   const sd = n > 1 ? Math.sqrt(ttrs.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1)) : null;
   const sorted = [...ttrs].sort((a, b) => a - b);
   const median = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
-  return { group: g, n, mean, sd, median, min: sorted[0], max: sorted[n - 1] };
+  const pinrrs = rows.map(r => r.pinrr).filter(x => x != null);
+  const vgrs = rows.map(r => r.vgr).filter(x => x != null);
+  return {
+    group: g, n, mean, sd, median, min: sorted[0], max: sorted[n - 1],
+    pinrrMean: pinrrs.length ? avg(pinrrs) : null,
+    vgrMean: vgrs.length ? avg(vgrs) : null
+  };
 }
 function makeOverall() {
-  const all = perPatient.filter(r => r.valid).map(r => r.ttr);
-  if (all.length) {
-    const s = makeStats('__all__', all);
-    groupStats.push(s);
-  }
+  const rows = perPatient.filter(r => r.valid);
+  if (rows.length) groupStats.push(makeStats('__all__', rows));
 }
 
 /* ================= rendering ================= */
@@ -748,8 +801,13 @@ function renderStatCards() {
   $('statGrid').innerHTML = groupStats.map(s => `
     <div class="stat-card">
       <div class="g-name"><span>${escapeHtml(groupLabel(s.group))}</span><span class="g-n">n=${s.n}${t('nUnit')}</span></div>
+      <div class="g-method">${t('rosLabel')}</div>
       <div class="g-mean">${s.mean.toFixed(1)}<small>%</small>${s.sd !== null ? `<small> ± ${s.sd.toFixed(1)}</small>` : ''}</div>
       <div class="g-sub">${t('medianLabel')} ${s.median.toFixed(1)}% · ${t('rangeLabel')} ${s.min.toFixed(1)}–${s.max.toFixed(1)}%</div>
+      <div class="g-cmp">
+        <span><b>PINRR</b> ${s.pinrrMean != null ? s.pinrrMean.toFixed(1) + '%' : '–'}</span>
+        <span><b>VGR</b> ${s.vgrMean != null ? s.vgrMean.toFixed(2) : '–'}</span>
+      </div>
     </div>`).join('');
 }
 const COLS = [
@@ -758,6 +816,9 @@ const COLS = [
   { key: 'n', label: 'thN' },
   { key: 'days', label: 'thDays' },
   { key: 'ttr', label: 'thTTR' },
+  { key: 'pinrr', label: 'thPINRR' },
+  { key: 'sdINR', label: 'thSD' },
+  { key: 'vgr', label: 'thVGR' },
   { key: 'below', label: 'thBelow' },
   { key: 'above', label: 'thAbove' },
 ];
@@ -777,7 +838,7 @@ function renderTable() {
   $('tableBody').innerHTML = rows.map(r => {
     const sel = r.id === selectedId ? ' class="selected"' : '';
     if (!r.valid) {
-      return `<tr data-id="${escapeHtml(r.id)}"${sel}><td>${escapeHtml(r.id)}</td><td>${escapeHtml(groupLabel(r.group))}</td><td>${r.n}</td><td colspan="4" class="muted">${t('invalidPatient')}</td></tr>`;
+      return `<tr data-id="${escapeHtml(r.id)}"${sel}><td>${escapeHtml(r.id)}</td><td>${escapeHtml(groupLabel(r.group))}</td><td>${r.n}</td><td colspan="7" class="muted">${t('invalidPatient')}</td></tr>`;
     }
     return `<tr data-id="${escapeHtml(r.id)}"${sel}>
       <td><b>${escapeHtml(r.id)}</b></td>
@@ -785,6 +846,9 @@ function renderTable() {
       <td>${r.n}</td>
       <td>${Math.round(r.days)}</td>
       <td><div class="ttrcell"><span class="num">${r.ttr.toFixed(1)}%</span><span class="bar"><i style="width:${Math.min(100, r.ttr)}%"></i></span></div></td>
+      <td>${r.pinrr != null ? r.pinrr.toFixed(1) + '%' : '–'}</td>
+      <td class="muted">${r.sdINR != null ? r.sdINR.toFixed(2) : '–'}</td>
+      <td class="muted">${r.vgr != null ? r.vgr.toFixed(2) : '–'}</td>
       <td class="muted">${r.below.toFixed(1)}%</td>
       <td class="muted">${r.above.toFixed(1)}%</td>
     </tr>`;
@@ -861,20 +925,24 @@ function renderChart() {
 /* ================= export ================= */
 function exportCSV() {
   if (!perPatient.length) return;
-  const L = ['PatientID,Group,Tests,FirstDate,LastDate,DaysAssessed,TTR_pct,BelowRange_pct,AboveRange_pct,ExcludedIntervals'];
+  const num = (x, d) => x != null ? x.toFixed(d) : 'NA';
+  const L = ['PatientID,Group,Tests,FirstDate,LastDate,DaysAssessed,TTR_Rosendaal_pct,PINRR_pct,SD_INR,VGR_Fihn,BelowRange_pct,AboveRange_pct,ExcludedIntervals'];
   perPatient.forEach(r => {
     if (r.valid) {
       L.push([r.id, groupLabel(r.group), r.n, fmtDate(r.first), fmtDate(r.last),
-        r.days.toFixed(1), r.ttr.toFixed(2), r.below.toFixed(2), r.above.toFixed(2), r.excluded].join(','));
+        r.days.toFixed(1), r.ttr.toFixed(2), num(r.pinrr, 2), num(r.sdINR, 3), num(r.vgr, 4),
+        r.below.toFixed(2), r.above.toFixed(2), r.excluded].join(','));
     } else {
-      L.push([r.id, groupLabel(r.group), r.n, '', '', '', 'NA', 'NA', 'NA', r.excluded || 0].join(','));
+      L.push([r.id, groupLabel(r.group), r.n, '', '', '', 'NA', num(r.pinrr, 2), num(r.sdINR, 3), num(r.vgr, 4),
+        'NA', 'NA', r.excluded || 0].join(','));
     }
   });
   L.push('');
-  L.push('Group,N,Mean_TTR_pct,SD,Median,Min,Max');
+  L.push('Group,N,Mean_TTR_Rosendaal_pct,SD,Median,Min,Max,Mean_PINRR_pct,Mean_VGR_Fihn');
   groupStats.forEach(s => {
     L.push([groupLabel(s.group), s.n, s.mean.toFixed(2), s.sd !== null ? s.sd.toFixed(2) : 'NA',
-      s.median.toFixed(2), s.min.toFixed(2), s.max.toFixed(2)].join(','));
+      s.median.toFixed(2), s.min.toFixed(2), s.max.toFixed(2),
+      num(s.pinrrMean, 2), num(s.vgrMean, 4)].join(','));
   });
   const blob = new Blob(['﻿' + L.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
@@ -945,6 +1013,7 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
   $('formatBody').innerHTML = t('formatBody');
+  $('metricsBody').innerHTML = t('metricsBody');
   $('langBtn').textContent = lang === 'zh' ? 'EN' : '中文';
   renderBanner();
   if (perPatient.length) renderResults();
