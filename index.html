@@ -239,6 +239,16 @@
   }
   .chart-ttr { font-weight: 700; color: var(--primary); font-size: 14px; }
   #chartBox svg { width: 100%; height: auto; display: block; }
+
+  /* ---------- method comparison ---------- */
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .method-grid { grid-template-columns: 1fr; } }
+  .plot-block { min-width: 0; }
+  .plot-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .plot-title { font-size: 13.5px; font-weight: 700; }
+  .btn-sm { padding: 3px 10px; font-size: 12px; }
+  #scatterBox svg, #baBox svg { width: 100%; height: auto; display: block; }
+  .method-grid text { font-family: inherit; }
   .legend { display: flex; gap: 18px; font-size: 12.5px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
 
@@ -389,6 +399,36 @@
     </div>
   </section>
 
+  <!-- method agreement analysis -->
+  <section class="card hidden" id="methodCard">
+    <div class="card-head">
+      <h2 data-i18n="methodTitle"></h2>
+      <div class="spacer"></div>
+      <span class="chart-ttr" id="methodStat"></span>
+    </div>
+    <div class="method-grid">
+      <div class="plot-block">
+        <div class="plot-head">
+          <span class="plot-title" data-i18n="scatterTitle"></span>
+          <button class="btn btn-ghost btn-sm" data-dl="scatterBox" data-name="scatter_TTR_vs_PINRR">SVG</button>
+        </div>
+        <div id="scatterBox"></div>
+      </div>
+      <div class="plot-block">
+        <div class="plot-head">
+          <span class="plot-title" data-i18n="baTitle"></span>
+          <button class="btn btn-ghost btn-sm" data-dl="baBox" data-name="BlandAltman_TTR_PINRR">SVG</button>
+        </div>
+        <div id="baBox"></div>
+      </div>
+    </div>
+    <div class="legend" id="methodLegend"></div>
+    <details class="format-help metrics-help">
+      <summary data-i18n="methodHelpTitle"></summary>
+      <div id="methodHelpBody"></div>
+    </details>
+  </section>
+
   <footer>
     <p class="privacy" data-i18n="privacy"></p>
     <p data-i18n="method"></p>
@@ -460,6 +500,24 @@ P02,B,2025-01-08 08:15,3.10</pre>`,
     legendIn: '治疗窗内',
     legendBelow: '低于下限',
     legendAbove: '高于上限',
+    methodTitle: '方法一致性分析（Rosendaal TTR vs PINRR）',
+    scatterTitle: '散点图（含等值线 y=x 与回归线）',
+    baTitle: 'Bland–Altman 图',
+    axisPinrr: 'PINRR（%）',
+    axisRosTTR: 'Rosendaal TTR（%）',
+    baX: '两法均值（%）',
+    baY: '差值 TTR − PINRR（%）',
+    biasWord: '偏倚',
+    loaWord: '95% 一致性界限',
+    corrWord: 'Pearson r',
+    methodNeedData: '至少需要 2 位可计算的患者才能进行一致性分析。',
+    methodHelpTitle: '如何解读这两张图',
+    methodHelpBody: `
+      <ul>
+        <li><b>散点图</b>：每点为一位患者，横轴 PINRR、纵轴 Rosendaal TTR。<b>虚线为等值线 y=x</b>——点落在线上表示两法一致；系统性偏离说明两法测得的达标水平不同。实线为回归线，<b>Pearson r</b> 反映线性相关强度。</li>
+        <li><b>Bland–Altman 图</b>：横轴为两法均值、纵轴为差值（TTR − PINRR）。中间实线为<b>平均偏倚</b>，上下虚线为 <b>95% 一致性界限（偏倚 ± 1.96×SD）</b>。多数点应落在两界限内；偏倚偏离 0 说明一法系统性高/低于另一法。</li>
+      </ul>
+      <p>这是方法比较研究的标准图件。点右上角的 <b>SVG</b> 按钮可导出矢量图直接用于论文。参考：Bland JM, Altman DG. Lancet. 1986;327(8476):307-310。</p>`,
     privacy: '🔒 所有数据仅在您的浏览器本地处理，不会上传到任何服务器。',
     method: '计算方法：Rosendaal 线性插值法 — Rosendaal FR, Cannegieter SC, van der Meer FJ, Briët E. A method to determine the optimal intensity of oral anticoagulant therapy. Thromb Haemost. 1993;69(3):236-239.',
     disclaimer: '本工具仅供科研与教学使用，不构成临床决策依据。',
@@ -533,6 +591,24 @@ P02,B,2025-01-08 08:15,3.10</pre>`,
     legendIn: 'In range',
     legendBelow: 'Below range',
     legendAbove: 'Above range',
+    methodTitle: 'Method agreement analysis (Rosendaal TTR vs PINRR)',
+    scatterTitle: 'Scatter (with identity line y=x and regression)',
+    baTitle: 'Bland–Altman plot',
+    axisPinrr: 'PINRR (%)',
+    axisRosTTR: 'Rosendaal TTR (%)',
+    baX: 'Mean of the two methods (%)',
+    baY: 'Difference TTR − PINRR (%)',
+    biasWord: 'Bias',
+    loaWord: '95% limits of agreement',
+    corrWord: 'Pearson r',
+    methodNeedData: 'At least 2 computable patients are required for agreement analysis.',
+    methodHelpTitle: 'How to read these two plots',
+    methodHelpBody: `
+      <ul>
+        <li><b>Scatter</b>: each point is a patient — PINRR on the x-axis, Rosendaal TTR on the y-axis. The <b>dashed identity line (y=x)</b> marks perfect agreement; systematic departure means the two methods report different in-range levels. The solid line is the regression fit and <b>Pearson r</b> gives the strength of linear correlation.</li>
+        <li><b>Bland–Altman</b>: x-axis is the mean of the two methods, y-axis the difference (TTR − PINRR). The solid line is the <b>mean bias</b>; the dashed lines are the <b>95% limits of agreement (bias ± 1.96×SD)</b>. Most points should fall within the limits; a bias away from 0 indicates one method is systematically higher/lower.</li>
+      </ul>
+      <p>These are the standard figures for a method-comparison study. Use the <b>SVG</b> buttons to export vector figures for a manuscript. Reference: Bland JM, Altman DG. Lancet. 1986;327(8476):307-310.</p>`,
     privacy: '🔒 All data is processed locally in your browser and never uploaded to any server.',
     method: 'Method: Rosendaal linear interpolation — Rosendaal FR, Cannegieter SC, van der Meer FJ, Briët E. A method to determine the optimal intensity of oral anticoagulant therapy. Thromb Haemost. 1993;69(3):236-239.',
     disclaimer: 'This tool is intended for research and educational use only and must not be used for clinical decision-making.',
@@ -796,6 +872,7 @@ function renderResults() {
   }
   $('patientSelect').value = selectedId;
   renderChart();
+  renderMethodComparison();
 }
 function renderStatCards() {
   $('statGrid').innerHTML = groupStats.map(s => `
@@ -922,6 +999,141 @@ function renderChart() {
   $('chartBox').innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">${parts.join('')}</svg>`;
 }
 
+/* ============ method agreement (Bland–Altman + scatter) ============ */
+const GROUP_PALETTE = ['#0e7490', '#dc2626', '#7c3aed', '#ea580c', '#0891b2', '#16a34a', '#db2777', '#ca8a04'];
+let groupColorMap = new Map();
+function buildGroupColors(rows) {
+  const groups = [...new Set(rows.map(r => r.group || ''))]
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  groupColorMap = new Map();
+  groups.forEach((g, i) => groupColorMap.set(g, GROUP_PALETTE[i % GROUP_PALETTE.length]));
+}
+const gColor = g => groupColorMap.get(g || '') || '#0e7490';
+
+function computeAgreement(rows) {
+  const n = rows.length;
+  const ttr = rows.map(r => r.ttr), pin = rows.map(r => r.pinrr);
+  const diffs = rows.map(r => r.ttr - r.pinrr);
+  const means = rows.map(r => (r.ttr + r.pinrr) / 2);
+  const bias = avg(diffs);
+  const sdDiff = n > 1 ? Math.sqrt(diffs.reduce((s, x) => s + (x - bias) ** 2, 0) / (n - 1)) : 0;
+  const mx = avg(pin), my = avg(ttr);
+  let sxx = 0, syy = 0, sxy = 0;
+  for (let i = 0; i < n; i++) { const dx = pin[i] - mx, dy = ttr[i] - my; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
+  const r = (sxx > 0 && syy > 0) ? sxy / Math.sqrt(sxx * syy) : null;
+  const slope = sxx > 0 ? sxy / sxx : null;
+  const intercept = slope != null ? my - slope * mx : null;
+  return { rows, n, ttr, pin, diffs, means, bias, sdDiff, loaLow: bias - 1.96 * sdDiff, loaHigh: bias + 1.96 * sdDiff, r, slope, intercept };
+}
+
+const SVG_FONT = "-apple-system,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif";
+const svgTxt = (x, y, s, opt = '') => `<text x="${x}" y="${y}" ${opt} font-size="11.5" fill="var(--muted)">${s}</text>`;
+const svgWrap = (W, H, inner) => `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" font-family="${SVG_FONT}">${inner}</svg>`;
+const round1 = v => Math.round(v * 10) / 10;
+function niceStep(range) {
+  const raw = range / 5, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+}
+
+function buildScatter(agg) {
+  const W = 440, H = 360, ml = 52, mr = 16, mt = 18, mb = 46, iw = W - ml - mr, ih = H - mt - mb;
+  const all = [...agg.ttr, ...agg.pin];
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const pad = Math.max(2, (hi - lo) * 0.08); lo = Math.max(0, lo - pad); hi = Math.min(100, hi + pad);
+  if (hi - lo < 5) hi = Math.min(100, lo + 5);
+  const X = v => ml + (v - lo) / (hi - lo) * iw, Y = v => mt + (hi - v) / (hi - lo) * ih;
+  const p = [`<clipPath id="scClip"><rect x="${ml}" y="${mt}" width="${iw}" height="${ih}"/></clipPath>`];
+  const step = niceStep(hi - lo);
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) {
+    p.push(`<line x1="${X(v)}" y1="${mt}" x2="${X(v)}" y2="${mt + ih}" stroke="var(--border)" stroke-width="1"/>`);
+    p.push(`<line x1="${ml}" y1="${Y(v)}" x2="${ml + iw}" y2="${Y(v)}" stroke="var(--border)" stroke-width="1"/>`);
+    p.push(svgTxt(X(v), mt + ih + 16, round1(v), 'text-anchor="middle"'));
+    p.push(svgTxt(ml - 8, Y(v) + 4, round1(v), 'text-anchor="end"'));
+  }
+  p.push(`<line x1="${X(lo)}" y1="${Y(lo)}" x2="${X(hi)}" y2="${Y(hi)}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="5 4" clip-path="url(#scClip)"/>`);
+  if (agg.slope != null) {
+    const y1 = agg.slope * lo + agg.intercept, y2 = agg.slope * hi + agg.intercept;
+    p.push(`<line x1="${X(lo)}" y1="${Y(y1)}" x2="${X(hi)}" y2="${Y(y2)}" stroke="var(--primary)" stroke-width="1.8" clip-path="url(#scClip)"/>`);
+  }
+  agg.rows.forEach(row => p.push(`<circle cx="${X(row.pinrr).toFixed(1)}" cy="${Y(row.ttr).toFixed(1)}" r="4.2" fill="${gColor(row.group)}" stroke="var(--card)" stroke-width="1"><title>${escapeHtml(String(row.id))}: TTR ${row.ttr.toFixed(1)}% / PINRR ${row.pinrr.toFixed(1)}%</title></circle>`));
+  if (agg.r != null) p.push(`<text x="${ml + 6}" y="${mt + 14}" font-size="12" font-weight="700" fill="var(--text)">r = ${agg.r.toFixed(3)}</text>`);
+  p.push(`<text x="${ml + iw / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">${t('axisPinrr')}</text>`);
+  p.push(`<text x="14" y="${mt + ih / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 14 ${mt + ih / 2})">${t('axisRosTTR')}</text>`);
+  return svgWrap(W, H, p.join(''));
+}
+
+function buildBA(agg) {
+  const W = 440, H = 360, ml = 52, mr = 16, mt = 18, mb = 46, iw = W - ml - mr, ih = H - mt - mb;
+  let xlo = Math.min(...agg.means), xhi = Math.max(...agg.means);
+  const xpad = Math.max(2, (xhi - xlo) * 0.08); xlo = Math.max(0, xlo - xpad); xhi = Math.min(100, xhi + xpad);
+  if (xhi - xlo < 5) xhi = xlo + 5;
+  const yv = [...agg.diffs, agg.loaLow, agg.loaHigh, 0];
+  let ylo = Math.min(...yv), yhi = Math.max(...yv);
+  const ypad = Math.max(1, (yhi - ylo) * 0.14); ylo -= ypad; yhi += ypad;
+  const X = v => ml + (v - xlo) / (xhi - xlo) * iw, Y = v => mt + (yhi - v) / (yhi - ylo) * ih;
+  const p = [];
+  const sx = niceStep(xhi - xlo);
+  for (let v = Math.ceil(xlo / sx) * sx; v <= xhi + 1e-9; v += sx) {
+    p.push(`<line x1="${X(v)}" y1="${mt}" x2="${X(v)}" y2="${mt + ih}" stroke="var(--border)" stroke-width="1"/>`);
+    p.push(svgTxt(X(v), mt + ih + 16, round1(v), 'text-anchor="middle"'));
+  }
+  const sy = niceStep(yhi - ylo);
+  for (let v = Math.ceil(ylo / sy) * sy; v <= yhi + 1e-9; v += sy) {
+    p.push(`<line x1="${ml}" y1="${Y(v)}" x2="${ml + iw}" y2="${Y(v)}" stroke="var(--border)" stroke-width="1"/>`);
+    p.push(svgTxt(ml - 8, Y(v) + 4, round1(v), 'text-anchor="end"'));
+  }
+  if (0 >= ylo && 0 <= yhi) p.push(`<line x1="${ml}" y1="${Y(0)}" x2="${ml + iw}" y2="${Y(0)}" stroke="var(--muted)" stroke-width="1" opacity="0.4"/>`);
+  const by = Y(agg.bias);
+  p.push(`<line x1="${ml}" y1="${by}" x2="${ml + iw}" y2="${by}" stroke="var(--primary)" stroke-width="1.8"/>`);
+  p.push(`<text x="${ml + iw - 2}" y="${by - 5}" text-anchor="end" font-size="11" font-weight="700" fill="var(--primary)">${t('biasWord')} ${agg.bias.toFixed(1)}</text>`);
+  for (const val of [agg.loaHigh, agg.loaLow]) {
+    p.push(`<line x1="${ml}" y1="${Y(val)}" x2="${ml + iw}" y2="${Y(val)}" stroke="var(--bad)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.75"/>`);
+    p.push(`<text x="${ml + iw - 2}" y="${Y(val) - 5}" text-anchor="end" font-size="10.5" fill="var(--bad)">${val.toFixed(1)}</text>`);
+  }
+  agg.rows.forEach(row => {
+    const mean = (row.ttr + row.pinrr) / 2, diff = row.ttr - row.pinrr;
+    p.push(`<circle cx="${X(mean).toFixed(1)}" cy="${Y(diff).toFixed(1)}" r="4.2" fill="${gColor(row.group)}" stroke="var(--card)" stroke-width="1"><title>${escapeHtml(String(row.id))}: ${diff.toFixed(1)}</title></circle>`);
+  });
+  p.push(`<text x="${ml + iw / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">${t('baX')}</text>`);
+  p.push(`<text x="14" y="${mt + ih / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 14 ${mt + ih / 2})">${t('baY')}</text>`);
+  return svgWrap(W, H, p.join(''));
+}
+
+function renderMethodComparison() {
+  const rows = perPatient.filter(r => r.valid && r.pinrr != null && r.ttr != null);
+  const card = $('methodCard');
+  if (rows.length < 2) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  buildGroupColors(rows);
+  const agg = computeAgreement(rows);
+  $('scatterBox').innerHTML = buildScatter(agg);
+  $('baBox').innerHTML = buildBA(agg);
+  $('methodStat').textContent =
+    `n=${agg.n} · ${t('biasWord')} ${agg.bias.toFixed(1)} · 95% LoA ${agg.loaLow.toFixed(1)}~${agg.loaHigh.toFixed(1)}` +
+    (agg.r != null ? ` · ${t('corrWord')} ${agg.r.toFixed(3)}` : '');
+  $('methodLegend').innerHTML = [...groupColorMap.entries()].map(([g, c]) =>
+    `<span><i style="background:${c}"></i>${escapeHtml(g === '' ? t('ungrouped') : g)}</span>`).join('');
+}
+
+function downloadSVG(boxId, name) {
+  const svg = $(boxId).querySelector('svg');
+  if (!svg) return;
+  let s = new XMLSerializer().serializeToString(svg);
+  const cs = getComputedStyle(document.documentElement);
+  ['--border', '--primary', '--muted', '--bad', '--card', '--text', '--ok', '--warn'].forEach(v => {
+    const val = cs.getPropertyValue(v).trim();
+    if (val) s = s.split(`var(${v})`).join(val);
+  });
+  const bg = cs.getPropertyValue('--card').trim() || '#ffffff';
+  s = s.replace('<svg ', `<svg style="background:${bg}" `);
+  const blob = new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + s], { type: 'image/svg+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '.svg';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 /* ================= export ================= */
 function exportCSV() {
   if (!perPatient.length) return;
@@ -1014,6 +1226,7 @@ function applyLang() {
   document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
   $('formatBody').innerHTML = t('formatBody');
   $('metricsBody').innerHTML = t('metricsBody');
+  $('methodHelpBody').innerHTML = t('methodHelpBody');
   $('langBtn').textContent = lang === 'zh' ? 'EN' : '中文';
   renderBanner();
   if (perPatient.length) renderResults();
@@ -1032,6 +1245,7 @@ $('langBtn').addEventListener('click', () => {
 });
 $('themeBtn').addEventListener('click', () => {
   applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  if (perPatient.length) { renderChart(); renderMethodComparison(); }
 });
 
 $('tabUploadBtn').addEventListener('click', () => switchTab(true));
@@ -1098,6 +1312,10 @@ $('patientSelect').addEventListener('change', e => {
   renderChart();
 });
 $('exportBtn').addEventListener('click', exportCSV);
+$('methodCard').addEventListener('click', e => {
+  const btn = e.target.closest('[data-dl]');
+  if (btn) downloadSVG(btn.dataset.dl, btn.dataset.name);
+});
 
 /* ================= init ================= */
 const urlTheme = urlParams.get('theme');
