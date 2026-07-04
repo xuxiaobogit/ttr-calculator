@@ -519,7 +519,9 @@ P02,B,2025-01-08 08:15,3.10</pre>`,
   }
 };
 
-let lang = localStorage.getItem('ttr-lang') || 'zh';
+const urlParams = new URLSearchParams(location.search);
+const urlLang = urlParams.get('lang');
+let lang = (urlLang === 'zh' || urlLang === 'en') ? urlLang : (localStorage.getItem('ttr-lang') || 'zh');
 const t = k => I18N[lang][k];
 
 /* ================= state ================= */
@@ -1029,10 +1031,19 @@ $('patientSelect').addEventListener('change', e => {
 $('exportBtn').addEventListener('click', exportCSV);
 
 /* ================= init ================= */
-applyTheme(localStorage.getItem('ttr-theme') ||
-  (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+const urlTheme = urlParams.get('theme');
+applyTheme((urlTheme === 'dark' || urlTheme === 'light') ? urlTheme :
+  (localStorage.getItem('ttr-theme') ||
+   (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')));
 applyLang();
 syncChips();
+
+// shareable demo link: ?demo=1 auto-loads the built-in sample dataset
+if (urlParams.get('demo') !== null) {
+  const sample = makeSample();
+  $('pasteArea').value = sample;
+  loadText(sample);
+}
 
 // exposed for debugging / testing in the console
 window.__ttr = { parseDateTime, parseTable, segmentSplit, computePatient };

@@ -1,35 +1,36 @@
-# TTR Calculator · TTR 计算器
+# TTR Calculator
 
-在线计算华法林抗凝治疗达标时间（Time in Therapeutic Range, TTR），采用 Rosendaal 线性插值法。
+A browser-based Warfarin **Time in Therapeutic Range (TTR)** calculator using the Rosendaal linear interpolation method. All computation happens locally in your browser — no data ever leaves your machine.
 
-A browser-based Warfarin Time-in-Therapeutic-Range (TTR) calculator using the Rosendaal linear interpolation method.
+**Live demo:** https://xuxiaobogit.github.io/ttr-calculator/
+&nbsp;·&nbsp; **One-click sample:** https://xuxiaobogit.github.io/ttr-calculator/?demo=1
 
-**在线使用 / Live demo:** https://xuxiaobogit.github.io/ttr-calculator/
+![TTR Calculator preview — sample dataset with per-group statistics, per-patient table, and an INR trajectory chart](docs/preview.png)
 
-## 功能 / Features
+## Features
 
-- 📄 拖拽上传 CSV / TXT，或直接从 Excel 复制粘贴；自动识别 UTF-8 / GBK 编码与逗号、制表符、分号分隔符
-- 👥 支持多患者、多分组批量计算；也支持单患者两列数据
-- 📊 每位患者的 TTR、低于窗时间、高于窗时间、评估天数；分组汇总（均值 ± SD、中位数、范围）
-- 📈 交互式 INR 轨迹图，治疗窗色带标注，数据点按窗内 / 窗下 / 窗上着色
-- ⚙️ 治疗窗预设（2.0–3.0 / 2.5–3.5）与自定义；可选排除超长检测间隔（默认阈值 56 天）
-- 💾 一键导出结果 CSV（Excel 可直接打开）
-- 🌐 中英文界面、深浅色主题
-- 🔒 纯前端零依赖单文件，所有数据仅在浏览器本地处理，不上传任何服务器
+- 📄 **Flexible import** — drag & drop a CSV / TXT file, or paste rows straight from Excel. UTF‑8 and GBK encodings, plus comma / tab / semicolon delimiters, are auto‑detected.
+- 👥 **Batch by patient and group** — computes many patients and groups at once; a single patient with just two columns (date, INR) also works.
+- 📊 **Detailed metrics** — per‑patient TTR, time below range, time above range, and days assessed; per‑group summaries (mean ± SD, median, range).
+- 📈 **Interactive INR trajectory chart** — the therapeutic window is shaded, and each measurement is colored by whether it falls in / below / above range.
+- ⚙️ **Configurable range** — presets (2.0–3.0 / 2.5–3.5) or custom limits; optionally exclude over‑long testing intervals (default threshold 56 days).
+- 💾 **One‑click CSV export** — results open directly in Excel.
+- 🌐 **Bilingual UI (English / 中文) and light / dark themes.**
+- 🔒 **Zero‑dependency single file** — everything runs client‑side; no data is uploaded to any server.
 
-## 数据格式 / Data format
+## Data format
 
-每行一条 INR 记录，按列数自动识别 / One record per line, layout auto-detected by column count:
+One INR record per line; the layout is detected automatically from the number of columns:
 
-| 列数 Columns | 含义 Layout |
+| Columns | Layout |
 | --- | --- |
-| 4 | PatientID, Group, DateTime, INR |
-| 3 | PatientID, DateTime, INR |
-| 2 | DateTime, INR（单患者 single patient）|
+| 4 | `PatientID, Group, DateTime, INR` |
+| 3 | `PatientID, DateTime, INR` |
+| 2 | `DateTime, INR` (single patient) |
 
-日期支持 `2023-08-19 14:30`、`2023/8/19`、`8/19/2023 0:05` 等格式（`x/y/年` 按 月/日/年 解释）。
+Dates such as `2023-08-19 14:30`, `2023/8/19`, and `8/19/2023 0:05` are accepted (`x/y/year` is read as month/day/year).
 
-示例 / Example:
+Example:
 
 ```csv
 PatientID,Group,DateTime,INR
@@ -38,16 +39,27 @@ P01,A,2025-01-20 09:30,2.40
 P02,B,2025-01-08 08:15,3.10
 ```
 
-## 方法 / Method
+## URL parameters
 
-Rosendaal FR, Cannegieter SC, van der Meer FJ, Briët E. **A method to determine the optimal intensity of oral anticoagulant therapy.** *Thromb Haemost.* 1993;69(3):236-239.
+The demo link supports a few query parameters for sharing a preconfigured view:
 
-相邻两次 INR 检测之间按线性插值分配时间；可选排除超过阈值天数的检测间隔（该区间不计入分子与分母）。
+| Parameter | Values | Effect |
+| --- | --- | --- |
+| `demo` | any | Auto-loads the built-in sample dataset |
+| `lang` | `en` / `zh` | Sets the interface language |
+| `theme` | `light` / `dark` | Sets the color theme |
 
-## 免责声明 / Disclaimer
+Example: `?demo=1&lang=en&theme=light`
 
-本工具仅供科研与教学使用，不构成临床决策依据。
-For research and educational use only; not for clinical decision-making.
+## Method
+
+Rosendaal FR, Cannegieter SC, van der Meer FJ, Briët E. **A method to determine the optimal intensity of oral anticoagulant therapy.** *Thromb Haemost.* 1993;69(3):236‑239.
+
+Time between consecutive INR measurements is allocated by linear interpolation. Intervals longer than the optional gap threshold are excluded from both the numerator and the denominator.
+
+## Disclaimer
+
+For research and educational use only; not intended for clinical decision-making.
 
 ## License
 
